@@ -7,40 +7,51 @@ class GildedRose
 
   def update_quality
     @items.each do |item|
-      item.sell_in -= 1 unless item.name == 'Sulfuras, Hand of Ragnaros'
-      change_quality(item)
+      update_item(item, item.sell_in, item.name)
     end
   end
 
   private
 
-  def change_quality(item)
-    case item.name
-    when 'Aged Brie'
-      item.quality += 1
-    when 'Backstage passes to a TAFKAL80ETC concert'
-      if item.sell_in.negative? || item.sell_in.zero?
-        item.quality = 0
-        return
-      end
-      item.quality += case item.sell_in
-                      when 1..5
-                        3
-                      when 6..10
-                        2
-                      else
-                        1
-                      end
-    when 'Sulfuras, Hand of Ragnaros'
-      item.quality = 80
-      return
-    when 'Conjured Mana Cake'
-      item.quality -= item.sell_in.negative? ? 4 : 2
-    else
-      item.quality -= item.sell_in.negative? ? 2 : 1
+  def update_item(item, *pattern)
+    case pattern
+    in [_, 'Sulfuras, Hand of Ragnaros']
+      set_quality(item, 80)
+    in [_, 'Aged Brie']
+      age_item(item)
+      increase_quality(item, 1)
+    in [6..10, 'Backstage passes to a TAFKAL80ETC concert']
+      age_item(item)
+      increase_quality(item, 2)
+    in [1..5, 'Backstage passes to a TAFKAL80ETC concert']
+      age_item(item)
+      increase_quality(item, 3)
+    in [Integer => sell_in, 'Backstage passes to a TAFKAL80ETC concert']
+      age_item(item)
+      sell_in.negative? || sell_in.zero? ? set_quality(item, 0) : increase_quality(item, 1)
+    in [_, 'Conjured Mana Cake']
+      age_item(item)
+      item.sell_in.negative? ? degrade_quality(item, 4) : degrade_quality(item, 2)
+    in [Integer, String]
+      age_item(item)
+      item.sell_in.negative? ? degrade_quality(item, 2) : degrade_quality(item, 1)
     end
-    item.quality = 50 if item.quality > 50
-    item.quality = 0 if item.quality.negative?
+  end
+
+  def degrade_quality(item, level)
+    item.quality = [item.quality - level, 0].max
+  end
+
+  def increase_quality(item, level)
+    item.quality = [item.quality + level, 50].min
+  end
+
+  def set_quality(item, quality)
+    item.quality = quality
+  end
+
+  def age_item(item)
+    item.sell_in -= 1
   end
 end
 

@@ -100,6 +100,15 @@ describe GildedRose do
 
         expect(items[0].quality).to eq 0
       end
+
+      it 'drops to 0 after the concert - negative values' do
+        items = [Item.new('Backstage passes to a TAFKAL80ETC concert', -1, 10)]
+
+        GildedRose.new(items).update_quality
+
+        expect(items[0].quality).to eq 0
+      end
+
     end
 
     context 'with conjured items' do
