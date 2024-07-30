@@ -7,28 +7,40 @@ class GildedRose
 
   def update_quality
     @items.each do |item|
-      if (item.name != 'Aged Brie') && (item.name != 'Backstage passes to a TAFKAL80ETC concert')
-        item.quality = item.quality - 1 if item.quality.positive? && (item.name != 'Sulfuras, Hand of Ragnaros')
-      elsif item.quality < 50
-        item.quality = item.quality + 1
-        if item.name == 'Backstage passes to a TAFKAL80ETC concert'
-          item.quality = item.quality + 1 if item.sell_in < 11 && (item.quality < 50)
-          item.quality = item.quality + 1 if item.sell_in < 6 && (item.quality < 50)
-        end
-      end
-      item.sell_in = item.sell_in - 1 if item.name != 'Sulfuras, Hand of Ragnaros'
-      if item.sell_in.negative?
-        if item.name != 'Aged Brie'
-          if item.name != 'Backstage passes to a TAFKAL80ETC concert'
-            item.quality = item.quality - 1 if item.quality.positive? && (item.name != 'Sulfuras, Hand of Ragnaros')
-          else
-            item.quality = item.quality - item.quality
-          end
-        elsif item.quality < 50
-          item.quality = item.quality + 1
-        end
-      end
+      item.sell_in -= 1 unless item.name == 'Sulfuras, Hand of Ragnaros'
+      change_quality(item)
     end
+  end
+
+  private
+
+  def change_quality(item)
+    case item.name
+    when 'Aged Brie'
+      item.quality += 1
+    when 'Backstage passes to a TAFKAL80ETC concert'
+      if item.sell_in.negative? || item.sell_in.zero?
+        item.quality = 0
+        return
+      end
+      item.quality += case item.sell_in
+                      when 1..5
+                        3
+                      when 6..10
+                        2
+                      else
+                        1
+                      end
+    when 'Sulfuras, Hand of Ragnaros'
+      item.quality = 80
+      return
+    when 'Conjured Mana Cake'
+      item.quality -= item.sell_in.negative? ? 4 : 2
+    else
+      item.quality -= item.sell_in.negative? ? 2 : 1
+    end
+    item.quality = 50 if item.quality > 50
+    item.quality = 0 if item.quality.negative?
   end
 end
 

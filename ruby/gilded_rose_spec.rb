@@ -49,7 +49,7 @@ describe GildedRose do
 
       GildedRose.new(items).update_quality
 
-      expect(items[0].quality).to eq 2
+      expect(items[0].quality).to eq 1
     end
 
     it 'cannot be higher than 50' do
@@ -111,6 +111,15 @@ describe GildedRose do
         expect(items[0].quality).to eq 8
       end
     end
+
+    it 'degrades twice as fast also when sell_in has passed' do
+      items = [Item.new('Conjured Mana Cake', 0, 10)]
+
+      GildedRose.new(items).update_quality
+
+      expect(items[0].quality).to eq 6
+    end
+
   end
 
   context 'with sell_in' do
